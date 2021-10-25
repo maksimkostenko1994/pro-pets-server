@@ -4,7 +4,7 @@ const express = require('express')
 const path = require('path')
 
 const sequelize = require('./db/db')
-const models = require('./models/models')
+require('./models/models')
 
 const cors = require('cors')
 const fileUpload = require('express-fileupload')
