@@ -4,8 +4,8 @@ const jwt = require('jsonwebtoken')
 
 const User = require('../models/User')
 
-const generateJwt = (id, email, role) => {
-    return jwt.sign({id, email, role}, process.env.SECRET_KEY, {expiresIn: '24h'})
+const generateJwt = (id, email, full_name, role) => {
+    return jwt.sign({id, full_name, email, role}, process.env.SECRET_KEY, {expiresIn: '24h'})
 }
 
 class UserController {
@@ -20,7 +20,7 @@ class UserController {
         }
         const hashPassword = await bcrypt.hash(password, 5)
         const user = await User.create({email, full_name, password: hashPassword, role})
-        const token = generateJwt(user.id, user.email, user.role)
+        const token = generateJwt(user.id, user.email, user.full_name, user.role)
         return res.json({token})
     }
 
@@ -30,14 +30,25 @@ class UserController {
         if (!user) return next(ApiError.internal('User not found'))
         let comparePassword = bcrypt.compareSync(password, user.password)
         if (!comparePassword) return next(ApiError.internal('Incorrect password'))
-        const token = generateJwt(user.id, user.email, user.role)
+        const token = generateJwt(user.id, user.email, user.full_name, user.role)
         return res.json({token})
     }
 
     async isAuth(req, res, next) {
-        const {id, email, role} = req.user
-        const token = generateJwt(id, email, role)
+        const {id, email, role, full_name} = req.user
+        const token = generateJwt(id, email, full_name, role)
         return res.json({token})
+    }
+
+    async getOne(req, res) {
+        try {
+            const {id} = req.params
+            const user = await User.findOne({where: {id}})
+            return res.json(user)
+        }
+        catch (e) {
+            throw Error(e.message)
+        }
     }
 }
 
