@@ -34,7 +34,7 @@ class UserController {
         return res.json({token})
     }
 
-    async isAuth(req, res, next) {
+    async isAuth(req, res) {
         const {id, email, role, full_name} = req.user
         const token = generateJwt(id, email, full_name, role)
         return res.json({token})
@@ -45,8 +45,19 @@ class UserController {
             const {id} = req.params
             const user = await User.findOne({where: {id}})
             return res.json(user)
+        } catch (e) {
+            throw new Error(e.message)
         }
-        catch (e) {
+    }
+
+    async update(req, res, next) {
+        try {
+            const {id} = req.params
+            const data = req.body
+            if(!id)  return next(ApiError("id is not specified"))
+            const user = await User.update(data, {where: {id}})
+            return res.json(user)
+        }catch (e) {
             throw Error(e.message)
         }
     }
