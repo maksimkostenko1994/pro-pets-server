@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 
 const User = require('../models/User')
+const {log} = require("nodemon/lib/utils");
 
 const generateJwt = (id, email, full_name, role) => {
     return jwt.sign({id, full_name, email, role}, process.env.SECRET_KEY, {expiresIn: '24h'})
@@ -55,8 +56,9 @@ class UserController {
             const {id} = req.params
             const data = req.body
             if(!id)  return next(ApiError("id is not specified"))
-            const user = await User.update(data, {where: {id}})
-            return res.json(user)
+            const [,user] = await User.update(data, {where: {id}, returning: true})
+            console.log(user[0])
+            return res.json(user[0])
         }catch (e) {
             throw Error(e.message)
         }

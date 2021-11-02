@@ -4,6 +4,7 @@ const path = require('path')
 const Service = require('../models/Service')
 
 const ApiError = require('../errors/ApiError')
+const {log} = require("nodemon/lib/utils");
 
 class ServiceController {
     async create(req, res, next) {
@@ -29,11 +30,12 @@ class ServiceController {
         }
     }
 
-    async getAll(req, res, limit, page) {
+    async getAll(req, res) {
+        let {page, limit} = req.query
         page = page || 1
         limit = limit || 10
         let offset = page * limit - limit
-        const services = await Service.findAndCountAll({limit, offset})
+        const services = await Service.findAndCountAll({offset, limit})
         return res.json(services)
     }
 
