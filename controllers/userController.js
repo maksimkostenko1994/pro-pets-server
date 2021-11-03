@@ -3,7 +3,6 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 
 const User = require('../models/User')
-const {log} = require("nodemon/lib/utils");
 
 const generateJwt = (id, email, full_name, avatar, role) => {
     return jwt.sign({id, full_name, email, role}, process.env.SECRET_KEY, {expiresIn: '24h'})
@@ -28,7 +27,6 @@ class UserController {
     async login(req, res, next) {
         const {email, password} = req.body
         const user = await User.findOne({where: {email}})
-        console.log(user)
         if (!user) return next(ApiError.internal('User not found'))
         let comparePassword = bcrypt.compareSync(password, user.password)
         if (!comparePassword) return next(ApiError.internal('Incorrect password'))
@@ -58,7 +56,6 @@ class UserController {
             const data = req.body
             if(!id)  return next(ApiError("id is not specified"))
             const [,user] = await User.update(data, {where: {id}, returning: true})
-            console.log(user[0])
             return res.json(user[0])
         }catch (e) {
             throw Error(e.message)
