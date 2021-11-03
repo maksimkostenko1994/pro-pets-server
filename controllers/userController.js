@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken')
 const User = require('../models/User')
 const {log} = require("nodemon/lib/utils");
 
-const generateJwt = (id, email, full_name, role) => {
+const generateJwt = (id, email, full_name, avatar, role) => {
     return jwt.sign({id, full_name, email, role}, process.env.SECRET_KEY, {expiresIn: '24h'})
 }
 
@@ -21,17 +21,18 @@ class UserController {
         }
         const hashPassword = await bcrypt.hash(password, 5)
         const user = await User.create({email, full_name, password: hashPassword, role})
-        const token = generateJwt(user.id, user.email, user.full_name, user.role)
+        const token = generateJwt(user.id, user.email, user.full_name, user.avatar, user.role)
         return res.json({token})
     }
 
     async login(req, res, next) {
         const {email, password} = req.body
         const user = await User.findOne({where: {email}})
+        console.log(user)
         if (!user) return next(ApiError.internal('User not found'))
         let comparePassword = bcrypt.compareSync(password, user.password)
         if (!comparePassword) return next(ApiError.internal('Incorrect password'))
-        const token = generateJwt(user.id, user.email, user.full_name, user.role)
+        const token = generateJwt(user.id, user.email, user.full_name, user.avatar, user.role)
         return res.json({token})
     }
 
