@@ -3,6 +3,8 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 
 const User = require('../models/User')
+const uuid = require("uuid");
+const path = require("path");
 
 const generateJwt = (id, email, full_name, avatar, role) => {
     return jwt.sign({id, full_name, email, role}, process.env.SECRET_KEY, {expiresIn: '24h'})
@@ -53,11 +55,29 @@ class UserController {
     async update(req, res, next) {
         try {
             const {id} = req.params
-            const data = req.body
-            if(!id)  return next(ApiError("id is not specified"))
-            const [,user] = await User.update(data, {where: {id}, returning: true})
+            const {email, phone, user_pet, nick, full_name} = req.body
+            const {pet_photo, avatar} = req.files
+            let avatarName = avatar !== undefined ? `${uuid.v4()}.jpg` : null,
+                petName = pet_photo !== undefined ? `${uuid.v4()}.jpg` : null
+            if (avatar !== undefined)
+                await avatar.mv(path.resolve(__dirname, '..', 'static', avatarName))
+            if (pet_photo !== undefined)
+                await pet_photo.mv(path.resolve(__dirname, '..', 'static', petName))
+            if (!id) return next(ApiError("id is not specified"))
+            const [, user] = await User.update({
+                email,
+                phone,
+                user_pet,
+                nick,
+                full_name,
+                pet_photo: petName,
+                avatar: avatarName
+            }, {
+                where: {id},
+                returning: true
+            })
             return res.json(user[0])
-        }catch (e) {
+        } catch (e) {
             throw Error(e.message)
         }
     }

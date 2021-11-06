@@ -4,7 +4,6 @@ const path = require('path')
 const Service = require('../models/Service')
 
 const ApiError = require('../errors/ApiError')
-const {log} = require("nodemon/lib/utils");
 
 class ServiceController {
     async create(req, res, next) {
