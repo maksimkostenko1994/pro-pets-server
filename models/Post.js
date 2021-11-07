@@ -6,7 +6,7 @@ const Post = sequelize.define('post', {
     id: {type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true},
     title: {type: DataTypes.STRING, allowNull: false},
     text: {type: DataTypes.TEXT, allowNull: false},
-    likes: {type: DataTypes.INTEGER, defaultValue: 0}
+    photo: {type: DataTypes.STRING, allowNull: false}
 })
 
 module.exports = Post
