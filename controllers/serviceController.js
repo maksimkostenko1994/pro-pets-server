@@ -30,11 +30,12 @@ class ServiceController {
     }
 
     async getAll(req, res) {
+        const {type} = req.params
         let {page, limit} = req.query
         page = page || 1
         limit = limit || 10
         let offset = page * limit - limit
-        const services = await Service.findAndCountAll({offset, limit})
+        const services = await Service.findAndCountAll({offset, limit, where: {type}})
         return res.json(services)
     }
 
