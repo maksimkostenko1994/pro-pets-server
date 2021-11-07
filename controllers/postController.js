@@ -13,7 +13,12 @@ class PostController {
     async getAll(req, res) {
         try {
             const posts = await Post.findAll()
-            return res.json(posts)
+            const users = await User.findAll()
+            const postsArr = posts.map(post => {
+                const userItem = users.find(user => user.id === post.userId)
+                return {...post.dataValues, full_name: userItem.full_name, avatar: userItem.avatar}
+            })
+            return res.json(postsArr)
         } catch (e) {
             return new Error(e.message)
         }
