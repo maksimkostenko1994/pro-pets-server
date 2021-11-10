@@ -5,9 +5,10 @@ const jwt = require('jsonwebtoken')
 const User = require('../models/User')
 const uuid = require("uuid");
 const path = require("path");
+const {where} = require("sequelize");
 
-const generateJwt = (id, email, full_name, avatar, role) => {
-    return jwt.sign({id, full_name, email, role}, process.env.SECRET_KEY, {expiresIn: '24h'})
+const generateJwt = (id, role) => {
+    return jwt.sign({id, role}, process.env.SECRET_KEY, {expiresIn: '900s'})
 }
 
 class UserController {
@@ -22,8 +23,8 @@ class UserController {
         }
         const hashPassword = await bcrypt.hash(password, 5)
         const user = await User.create({email, full_name, password: hashPassword, role})
-        const token = generateJwt(user.id, user.email, user.full_name, user.avatar, user.role)
-        return res.json({token})
+        const token = generateJwt(user.id, user.role)
+        return res.json({token, user})
     }
 
     async login(req, res, next) {
@@ -32,14 +33,19 @@ class UserController {
         if (!user) return next(ApiError.internal('User not found'))
         let comparePassword = bcrypt.compareSync(password, user.password)
         if (!comparePassword) return next(ApiError.internal('Incorrect password'))
-        const token = generateJwt(user.id, user.email, user.full_name, user.avatar, user.role)
-        return res.json({token})
+        const token = generateJwt(user.id, user.role)
+        return res.json({token, user})
     }
 
     async isAuth(req, res) {
-        const {id, email, role, full_name} = req.user
-        const token = generateJwt(id, email, full_name, role)
-        return res.json({token})
+        try {
+            const {id, role} = req.user
+            const token = generateJwt(id, role)
+            const user = await User.findOne({where: {id}})
+            return res.json({token, user})
+        } catch (e) {
+            throw new Error(e.message)
+        }
     }
 
     async getOne(req, res) {
@@ -59,9 +65,9 @@ class UserController {
             const {pet_photo, avatar} = req.files
             let avatarName = avatar !== undefined ? `${uuid.v4()}.jpg` : null,
                 petName = pet_photo !== undefined ? `${uuid.v4()}.jpg` : null
-            if (avatar !== undefined)
+            if (avatar || avatar !== undefined)
                 await avatar.mv(path.resolve(__dirname, '..', 'static', avatarName))
-            if (pet_photo !== undefined)
+            if (pet_photo || pet_photo !== undefined)
                 await pet_photo.mv(path.resolve(__dirname, '..', 'static', petName))
             if (!id) return next(ApiError("id is not specified"))
             const [, user] = await User.update({
