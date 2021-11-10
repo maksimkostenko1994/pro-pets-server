@@ -2,6 +2,7 @@ const uuid = require('uuid')
 const path = require('path')
 
 const Service = require('../models/Service')
+const User = require('../models/User')
 
 const ApiError = require('../errors/ApiError')
 
@@ -36,7 +37,12 @@ class ServiceController {
         limit = limit || 10
         let offset = page * limit - limit
         const services = await Service.findAndCountAll({offset, limit, where: {type}})
-        return res.json(services)
+        const users = await User.findAll()
+        const serviceArr = services.rows.map(service => {
+            const user = users.find(item => item.id === service.userId)
+            return {...service.dataValues, full_name: user.full_name, avatar: user.avatar}
+        })
+        return res.json({...services, rows: serviceArr})
     }
 
     async getOne(req, res) {
