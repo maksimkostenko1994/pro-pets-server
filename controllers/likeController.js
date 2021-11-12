@@ -18,6 +18,17 @@ class LikeController {
         const likes = Like.findAndCountAll({where: {postId}})
         return res.json(likes)
     }
+
+    async delete(req, res) {
+        try {
+            const {id} = req.params
+            if (!id) return res.json({message: 'ID is not specified'})
+            await Like.destroy({where: {id}})
+            return res.json({message: "Delete successfully"})
+        } catch (e) {
+            return res.json({message: e})
+        }
+    }
 }
 
 module.exports = new LikeController()
