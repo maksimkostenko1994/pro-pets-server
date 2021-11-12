@@ -22,11 +22,9 @@ class LikeController {
 
     async delete(req, res) {
         try {
-            const { userId } = req.body;
-            console.log(req);
-            console.log(userId);
-            if (!userId) return res.json({ message: "ID is not specified" });
-            await Like.destroy({ where: { userId } });
+            const { id } = req.body;
+            if (!id) return res.json({ message: "ID is not specified" });
+            await Like.destroy({ where: { id } });
             return res.json({ message: "Delete successfully" });
         } catch (e) {
             return res.json({ message: e });
