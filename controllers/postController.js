@@ -6,6 +6,7 @@ const ApiError = require("../errors/ApiError");
 const uuid = require("uuid");
 
 const path = require('path')
+const {where} = require("sequelize");
 
 class PostController {
     async create(req, res, next) {
@@ -46,11 +47,16 @@ class PostController {
             const post = await Post.findOne({where: {id}})
             const comments = await Comment.findAll({where: {postId: id}})
             const likes = await Like.findAndCountAll({where: {postId: id}})
+            const users = await User.findAll()
             if (!post) {
                 return next(ApiError.badRequest('Not found'))
             }
             const user = await User.findOne({where: {id: post.userId}})
-            return res.json({...post.dataValues, full_name: user.full_name, avatar: user.avatar,comments, likes: likes.rows, count: likes.count})
+            const commentsArr = comments.map(comment => {
+                const userObj = users.find(item => item.id === comment.userId)
+                return {...comment.dataValues, user: userObj}
+            })
+            return res.json({...post.dataValues, full_name: user.full_name, avatar: user.avatar,comments: commentsArr, likes: likes.rows, count: likes.count})
         } catch (e) {
             return new Error(e.message)
         }
