@@ -1,6 +1,7 @@
 const Post = require('../models/Post')
 const User = require('../models/User')
 const Like = require('../models/Like')
+const Comment = require('../models/Comment')
 const ApiError = require("../errors/ApiError");
 const uuid = require("uuid");
 
@@ -43,12 +44,13 @@ class PostController {
             const {id} = req.params
             if (isNaN(id)) return next(ApiError.badRequest('Invalid id'))
             const post = await Post.findOne({where: {id}})
+            const comments = await Comment.findAll({where: {postId: id}})
             const likes = await Like.findAndCountAll({where: {postId: id}})
             if (!post) {
                 return next(ApiError.badRequest('Not found'))
             }
             const user = await User.findOne({where: {id: post.userId}})
-            return res.json({...post.dataValues, full_name: user.full_name, avatar: user.avatar, count: likes.count})
+            return res.json({...post.dataValues, full_name: user.full_name, avatar: user.avatar,comments, count: likes.count})
         } catch (e) {
             return new Error(e.message)
         }
