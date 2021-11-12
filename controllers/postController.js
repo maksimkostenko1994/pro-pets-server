@@ -50,7 +50,7 @@ class PostController {
                 return next(ApiError.badRequest('Not found'))
             }
             const user = await User.findOne({where: {id: post.userId}})
-            return res.json({...post.dataValues, full_name: user.full_name, avatar: user.avatar,comments, count: likes.count})
+            return res.json({...post.dataValues, full_name: user.full_name, avatar: user.avatar,comments, likes: likes.rows, count: likes.count})
         } catch (e) {
             return new Error(e.message)
         }

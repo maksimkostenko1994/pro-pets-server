@@ -76,8 +76,8 @@ class UserController {
                 user_pet,
                 nick,
                 full_name,
-                pet_photo: petName,
-                avatar: avatarName
+                pet_photo: petName || null,
+                avatar: avatarName || null
             }, {
                 where: {id},
                 returning: true
