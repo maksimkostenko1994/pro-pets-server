@@ -3,11 +3,12 @@ const Like = require('../models/Like')
 class LikeController {
     async create(req, res) {
         const {userId, postId} = req.body
+        if (!userId || !postId) return res.json({message: "Missed userId or postId"})
         const like = await Like.create({userId, postId})
         res.json(like)
     }
 
-    async getAll(req ,res) {
+    async getAll(req, res) {
         const likes = await Like.findAll()
         return res.json(likes)
     }
