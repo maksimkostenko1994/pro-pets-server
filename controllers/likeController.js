@@ -27,7 +27,7 @@ class LikeController {
             await Like.destroy({ where: { id } });
             return res.json({ message: "Delete successfully" });
         } catch (e) {
-            return res.json({ message: e });
+            return res.json({ result: "server error", message: e });
         }
     }
 }
