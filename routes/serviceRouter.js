@@ -5,7 +5,7 @@ const serviceController = require('../controllers/serviceController')
 
 const checkRoleAndType = require('../middleware/checkRoleAndTypeMiddleware')
 
-router.post('/', checkRoleAndType(), serviceController.create)
+router.post('/', serviceController.create)
 router.get('/:type', serviceController.getAll)
 router.get('/:id', serviceController.getOne)
 
