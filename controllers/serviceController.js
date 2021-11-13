@@ -44,10 +44,16 @@ class ServiceController {
         return res.json({...services, rows: serviceArr})
     }
 
-    async getOne(req, res) {
-        const {id} = req.params
-        const service = await Service.findOne({where: {id}})
-        return res.json(service)
+    async getOne(req, res,next) {
+        try {
+            const {id} = req.params
+            if(!id) return res.json({message: "ID is not specified"})
+            const service = await Service.findOne({where: {id}})
+            const user = await User.findOne({where:{id: service.userId}})
+            return res.json({...service.dataValues, user})
+        }catch (e) {
+            next(ApiError.badRequest(e.message))
+        }
     }
 }
 
