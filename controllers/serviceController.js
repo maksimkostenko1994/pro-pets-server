@@ -13,7 +13,6 @@ class ServiceController {
             const {photo} = req.files
             let fileName = `${uuid.v4()}.jpg`
             await photo.mv(path.resolve(__dirname, '..', 'static', fileName))
-
             const service = await Service.create({
                 userId,
                 location,
