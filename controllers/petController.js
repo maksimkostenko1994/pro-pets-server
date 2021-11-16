@@ -44,7 +44,8 @@ class PetController {
 
     async getAll(req, res, next) {
         try {
-            const pets = await Pet.findAll()
+            const {status} = req.body
+            const pets = await Pet.findAll({where: {status}})
             return res.json(pets)
         } catch (e) {
             next(ApiError.badRequest(e.message))
@@ -68,7 +69,8 @@ class PetController {
             if (!id) return res.json({message: "ID is not specified"})
             const {status, contacts} = req.body
             if (!status) return res.json({message: "STATUS is not specified"})
-            const [, pet] = await Pet.update({status}, {where: {id}, returning: true})
+            if (!contacts) return res.json({message: "CONTACTS is not specified"})
+            const [, pet] = await Pet.update({status, contacts}, {where: {id}, returning: true})
             return res.json(pet[0])
         } catch (e) {
             next(ApiError.badRequest(e.message))
