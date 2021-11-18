@@ -2,6 +2,7 @@ const Pet = require('../models/Pet')
 const ApiError = require("../errors/ApiError");
 const uuid = require("uuid");
 const path = require("path");
+const {log} = require("nodemon/lib/utils");
 
 class PetController {
     async create(req, res, next) {
@@ -44,7 +45,8 @@ class PetController {
 
     async getAll(req, res, next) {
         try {
-            const {status} = req.body
+            const {status} = req.params
+
             const pets = await Pet.findAll({where: {status}})
             return res.json(pets)
         } catch (e) {
