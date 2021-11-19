@@ -2,7 +2,7 @@ const Pet = require('../models/Pet')
 const ApiError = require("../errors/ApiError");
 const uuid = require("uuid");
 const path = require("path");
-const {log} = require("nodemon/lib/utils");
+const User = require('../models/User')
 
 class PetController {
     async create(req, res, next) {
@@ -20,6 +20,7 @@ class PetController {
                 location,
                 status
             } = req.body
+
             const {image} = req.files
             const imageName = `${uuid.v4()}.jpg`
             await image.mv(path.resolve(__dirname, '..', 'static', imageName))
