@@ -47,9 +47,13 @@ class PetController {
     async getAll(req, res, next) {
         try {
             const {status} = req.params
-
             const pets = await Pet.findAll({where: {status}})
-            return res.json(pets)
+            const users = await User.findAll()
+            const petsArr = pets.map(pet => {
+                const user = users.find(item => item.id === pet.userId)
+                return {...pet.dataValues, nick: user.nick}
+            })
+            return res.json(petsArr)
         } catch (e) {
             next(ApiError.badRequest(e.message))
         }
