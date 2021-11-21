@@ -8,7 +8,7 @@ const path = require("path");
 const {where} = require("sequelize");
 
 const generateJwt = (id, role) => {
-    return jwt.sign({id, role}, process.env.SECRET_KEY, {expiresIn: '900s'})
+    return jwt.sign({id, role}, process.env.SECRET_KEY, {expiresIn: '24h'})
 }
 
 class UserController {
