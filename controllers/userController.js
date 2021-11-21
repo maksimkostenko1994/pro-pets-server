@@ -61,26 +61,31 @@ class UserController {
         try {
             const {id} = req.params
             const {email, phone, user_pet, nick, full_name} = req.body
-            const {pet_photo, avatar} = req.files
-            let avatarName = avatar !== undefined ? `${uuid.v4()}.jpg` : null,
-                petName = pet_photo !== undefined ? `${uuid.v4()}.jpg` : null
-            if (avatar || avatar !== undefined)
+            let pet_photo, avatar
+            if (req.files) {
+                pet_photo = req.files.pet_photo || null
+                avatar = req.files.avatar || null
+            }
+            let avatarName = avatar ? `${uuid.v4()}.jpg` : null,
+                petName = pet_photo ? `${uuid.v4()}.jpg` : null
+            if (avatar)
                 await avatar.mv(path.resolve(__dirname, '..', 'static', avatarName))
-            if (pet_photo || pet_photo !== undefined)
+            if (pet_photo)
                 await pet_photo.mv(path.resolve(__dirname, '..', 'static', petName))
-            if (!id) return next(ApiError("id is not specified"))
-            const [, user] = await User.update({
-                email,
-                phone,
-                user_pet,
-                nick,
-                full_name,
-                pet_photo: petName || null,
-                avatar: avatarName || null
-            }, {
-                where: {id},
-                returning: true
-            })
+            if (!id) return next(ApiError("ID is not specified"))
+            if(pet_photo && avatar) {
+                const [, user] = await User.update({email, phone, user_pet, nick, full_name, avatar: avatarName, pet_photo: petName}, {where: {id}, returning: true})
+                return res.json(user[0])
+            }
+            if (pet_photo) {
+                const [, user] = await User.update({email, phone, user_pet, nick, full_name, pet_photo: petName}, {where: {id}, returning: true})
+                return res.json(user[0])
+            }
+            if (avatar) {
+                const [, user] = await User.update({email, phone, user_pet, nick, full_name, avatar: avatarName}, {where: {id}, returning: true})
+                return res.json(user[0])
+            }
+            const [, user] = await User.update({email, phone, user_pet, nick, full_name}, {where: {id}, returning: true})
             return res.json(user[0])
         } catch (e) {
             throw Error(e.message)
