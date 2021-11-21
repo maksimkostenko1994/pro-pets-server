@@ -18,7 +18,8 @@ class PetController {
                 features,
                 description,
                 location,
-                status
+                status,
+                nick
             } = req.body
 
             const {image} = req.files
@@ -38,6 +39,8 @@ class PetController {
                 location,
                 status
             })
+            if (nick)
+                await User.update({nick}, {where: {id: userId}})
             return res.json(pet)
         } catch (e) {
             next(ApiError.badRequest(e.message))
