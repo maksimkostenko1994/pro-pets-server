@@ -2,7 +2,7 @@ const Pet = require('../models/Pet')
 const ApiError = require("../errors/ApiError");
 const uuid = require("uuid");
 const path = require("path");
-const {log} = require("nodemon/lib/utils");
+const User = require('../models/User')
 
 class PetController {
     async create(req, res, next) {
@@ -18,8 +18,12 @@ class PetController {
                 features,
                 description,
                 location,
-                status
+                status,
+                nick
             } = req.body
+
+            if (!userId) return res.json({message: "ID is not specified"})
+
             const {image} = req.files
             const imageName = `${uuid.v4()}.jpg`
             await image.mv(path.resolve(__dirname, '..', 'static', imageName))
@@ -37,6 +41,8 @@ class PetController {
                 location,
                 status
             })
+            if (nick)
+                await User.update({nick}, {where: {id: userId}})
             return res.json(pet)
         } catch (e) {
             next(ApiError.badRequest(e.message))
@@ -46,9 +52,13 @@ class PetController {
     async getAll(req, res, next) {
         try {
             const {status} = req.params
-
             const pets = await Pet.findAll({where: {status}})
-            return res.json(pets)
+            const users = await User.findAll()
+            const petsArr = pets.map(pet => {
+                const user = users.find(item => item.id === pet.userId)
+                return {...pet.dataValues, nick: user.nick}
+            })
+            return res.json(petsArr)
         } catch (e) {
             next(ApiError.badRequest(e.message))
         }
