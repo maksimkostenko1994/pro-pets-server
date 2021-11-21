@@ -22,6 +22,8 @@ class PetController {
                 nick
             } = req.body
 
+            if (!userId) return res.json({message: "ID is not specified"})
+
             const {image} = req.files
             const imageName = `${uuid.v4()}.jpg`
             await image.mv(path.resolve(__dirname, '..', 'static', imageName))
