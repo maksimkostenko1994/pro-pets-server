@@ -21,10 +21,14 @@ class PostController {
 
     async getAll(req, res) {
         try {
-            const posts = await Post.findAll()
+            let {limit, page} = req.query
+            limit = limit || 2
+            page = page || 1
+            let offset = page * limit - limit
+            const posts = await Post.findAndCountAll({offset, limit})
             const users = await User.findAll()
             const likes = await Like.findAll()
-            const postsArr = posts.map(post => {
+            const postsArr = posts.rows.map(post => {
                 const userItem = users.find(user => user.id === post.userId)
                 const likesCount = likes.filter(like => like.postId === post.id)
                 return {
@@ -34,7 +38,7 @@ class PostController {
                     count: likesCount.length
                 }
             })
-            return res.json(postsArr)
+            return res.json({rows: postsArr, count: posts.count})
         } catch (e) {
             return new Error(e.message)
         }
@@ -56,7 +60,14 @@ class PostController {
                 const userObj = users.find(item => item.id === comment.userId)
                 return {...comment.dataValues, user: userObj}
             })
-            return res.json({...post.dataValues, full_name: user.full_name, avatar: user.avatar,comments: commentsArr, likes: likes.rows, count: likes.count})
+            return res.json({
+                ...post.dataValues,
+                full_name: user.full_name,
+                avatar: user.avatar,
+                comments: commentsArr,
+                likes: likes.rows,
+                count: likes.count
+            })
         } catch (e) {
             return new Error(e.message)
         }
