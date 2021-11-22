@@ -33,7 +33,7 @@ class ServiceController {
         const {type} = req.params
         let {page, limit} = req.query
         page = page || 1
-        limit = limit || 2
+        limit = limit || 4
         let offset = page * limit - limit
         const services = await Service.findAndCountAll({offset, limit, where: {type}})
         const users = await User.findAll()
