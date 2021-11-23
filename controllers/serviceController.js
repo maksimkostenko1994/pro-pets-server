@@ -5,6 +5,7 @@ const Service = require('../models/Service')
 const User = require('../models/User')
 
 const ApiError = require('../errors/ApiError')
+const {log} = require("nodemon/lib/utils");
 
 class ServiceController {
     async create(req, res, next) {
@@ -33,7 +34,7 @@ class ServiceController {
         const {type} = req.params
         let {page, limit} = req.query
         page = page || 1
-        limit = limit || 2
+        limit = limit || 4
         let offset = page * limit - limit
         const services = await Service.findAndCountAll({offset, limit, where: {type}})
         const users = await User.findAll()
@@ -44,14 +45,14 @@ class ServiceController {
         return res.json({...services, rows: serviceArr})
     }
 
-    async getOne(req, res,next) {
+    async getOne(req, res, next) {
         try {
             const {id} = req.params
-            if(!id) return res.json({message: "ID is not specified"})
+            if (!id) return res.json({message: "ID is not specified"})
             const service = await Service.findOne({where: {id}})
-            const user = await User.findOne({where:{id: service.userId}})
+            const user = await User.findOne({where: {id: service.userId}})
             return res.json({...service.dataValues, user})
-        }catch (e) {
+        } catch (e) {
             next(ApiError.badRequest(e.message))
         }
     }
