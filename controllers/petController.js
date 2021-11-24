@@ -93,6 +93,16 @@ class PetController {
         }
     }
 
+    async delete(req, res, next) {
+        try {
+            const {id} = req.params
+            if (!id) return res.json({message: "ID is not specified"})
+            await Pet.destroy({where: {id}})
+            return res.json({ message: "Delete successfully" })
+        } catch (e) {
+            next(ApiError.badRequest(e.message))
+        }
+    }
 
 }
 
