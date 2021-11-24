@@ -25,7 +25,7 @@ class PostController {
             limit = limit || 2
             page = page || 1
             let offset = page * limit - limit
-            const posts = await Post.findAndCountAll({offset, limit})
+            const posts = await Post.findAndCountAll({offset, limit, order: [['createdAt', 'DESC']]})
             const users = await User.findAll()
             const likes = await Like.findAll()
             const postsArr = posts.rows.map(post => {

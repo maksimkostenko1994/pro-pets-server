@@ -6,5 +6,6 @@ router.post('/', petController.create)
 router.get('/:status', petController.getAll)
 router.get('/id/:id', petController.getOne)
 router.put('/:id', petController.update)
+router.delete('/:id', petController.delete)
 
 module.exports = router

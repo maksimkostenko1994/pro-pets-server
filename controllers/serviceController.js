@@ -36,7 +36,7 @@ class ServiceController {
         page = page || 1
         limit = limit || 4
         let offset = page * limit - limit
-        const services = await Service.findAndCountAll({offset, limit, where: {type}})
+        const services = await Service.findAndCountAll({offset, limit, where: {type}, order: [['createdAt', 'DESC']]})
         const users = await User.findAll()
         const serviceArr = services.rows.map(service => {
             const user = users.find(item => item.id === service.userId)
