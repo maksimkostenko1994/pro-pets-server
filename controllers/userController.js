@@ -46,7 +46,6 @@ class UserController {
             const {id, role} = req.user
             const token = generateJwt(id, role)
             const user = await User.findOne({where: {id}})
-
             return res.json({token, user})
         } catch (e) {
             throw new Error(e.message)
@@ -148,15 +147,17 @@ fs.readdir('./static', async (err, data) => {
 
     const allPhotos = [...userPhotoArr, ...postPhotoArr, ...servicePhotoArr, ...petPhotoArr]
     const photoArray = allPhotos.flat(Infinity)
+    const res = []
 
     for (let i = 0; i < data.length; i++) {
-        const candidate = data[i]
-        for (let j = 0; j < photoArray.length; j++) {
-            const file = photoArray[j]
-            if (candidate !== file && j === photoArray.length - 1) {
-
-            }
+        const even = elem => elem === data[i]
+        if(!photoArray.some(even)) {
+            res.push(data[i])
         }
-        console.log("=====================================")
     }
+
+    res.forEach(item => {
+        fs.unlink(`./static/${item}`, () => {})
+    })
+
 })
