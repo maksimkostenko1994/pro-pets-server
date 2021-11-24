@@ -5,6 +5,11 @@ const jwt = require('jsonwebtoken')
 const User = require('../models/User')
 const uuid = require("uuid");
 const path = require("path");
+const Post = require("../models/Post");
+const Service = require("../models/Service");
+const Pet = require("../models/Pet");
+
+const fs = require('fs')
 
 const generateJwt = (id, role) => {
     return jwt.sign({id, role}, process.env.SECRET_KEY, {expiresIn: '900s'})
@@ -41,6 +46,7 @@ class UserController {
             const {id, role} = req.user
             const token = generateJwt(id, role)
             const user = await User.findOne({where: {id}})
+
             return res.json({token, user})
         } catch (e) {
             throw new Error(e.message)
@@ -73,19 +79,44 @@ class UserController {
             if (pet_photo)
                 await pet_photo.mv(path.resolve(__dirname, '..', 'static', petName))
             if (!id) return next(ApiError("ID is not specified"))
-            if(pet_photo && avatar) {
-                const [, user] = await User.update({email, phone, user_pet, nick, full_name, avatar: avatarName, pet_photo: petName}, {where: {id}, returning: true})
+            if (pet_photo && avatar) {
+                const [, user] = await User.update({
+                    email,
+                    phone,
+                    user_pet,
+                    nick,
+                    full_name,
+                    avatar: avatarName,
+                    pet_photo: petName
+                }, {where: {id}, returning: true})
                 return res.json(user[0])
             }
             if (pet_photo) {
-                const [, user] = await User.update({email, phone, user_pet, nick, full_name, pet_photo: petName}, {where: {id}, returning: true})
+                const [, user] = await User.update({
+                    email,
+                    phone,
+                    user_pet,
+                    nick,
+                    full_name,
+                    pet_photo: petName
+                }, {where: {id}, returning: true})
                 return res.json(user[0])
             }
             if (avatar) {
-                const [, user] = await User.update({email, phone, user_pet, nick, full_name, avatar: avatarName}, {where: {id}, returning: true})
+                const [, user] = await User.update({
+                    email,
+                    phone,
+                    user_pet,
+                    nick,
+                    full_name,
+                    avatar: avatarName
+                }, {where: {id}, returning: true})
                 return res.json(user[0])
             }
-            const [, user] = await User.update({email, phone, user_pet, nick, full_name}, {where: {id}, returning: true})
+            const [, user] = await User.update({email, phone, user_pet, nick, full_name}, {
+                where: {id},
+                returning: true
+            })
             return res.json(user[0])
         } catch (e) {
             throw Error(e.message)
@@ -94,3 +125,38 @@ class UserController {
 }
 
 module.exports = new UserController()
+
+fs.readdir('./static', async (err, data) => {
+    if (err) console.log(err)
+    const userPhotos = await User.findAll({attributes: ['pet_photo', 'avatar']})
+    const postPhotos = await Post.findAll({attributes: ['photo']})
+    const servicePhotos = await Service.findAll({attributes: ['photo']})
+    const petPhotos = await Pet.findAll({attributes: ['image']})
+    const userPhotoArr = userPhotos.map(item => {
+        return [item.pet_photo, item.avatar]
+    })
+
+    const postPhotoArr = postPhotos.map(item => {
+        return [item.photo]
+    })
+    const servicePhotoArr = servicePhotos.map(item => {
+        return [item.photo]
+    })
+    const petPhotoArr = petPhotos.map(item => {
+        return [item.image]
+    })
+
+    const allPhotos = [...userPhotoArr, ...postPhotoArr, ...servicePhotoArr, ...petPhotoArr]
+    const photoArray = allPhotos.flat(Infinity)
+
+    for (let i = 0; i < data.length; i++) {
+        const candidate = data[i]
+        for (let j = 0; j < photoArray.length; j++) {
+            const file = photoArray[j]
+            if (candidate !== file && j === photoArray.length - 1) {
+
+            }
+        }
+        console.log("=====================================")
+    }
+})
