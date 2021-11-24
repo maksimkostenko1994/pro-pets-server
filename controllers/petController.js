@@ -3,6 +3,7 @@ const ApiError = require("../errors/ApiError");
 const uuid = require("uuid");
 const path = require("path");
 const User = require('../models/User')
+const jwt = require('jsonwebtoken')
 
 class PetController {
     async create(req, res, next) {
@@ -51,6 +52,9 @@ class PetController {
 
     async getAll(req, res, next) {
         try {
+            const token = req.headers.authorization.split(' ')[1]
+            const decoded = jwt.verify(token, process.env.SECRET_KEY)
+            const access = await Pet.findOne({where: {userId: decoded.id}})
             const {status} = req.params
             const pets = await Pet.findAll({where: {status}, order: [['createdAt', 'DESC']]})
             const users = await User.findAll()
@@ -58,7 +62,7 @@ class PetController {
                 const user = users.find(item => item.id === pet.userId)
                 return {...pet.dataValues, nick: user.nick}
             })
-            return res.json(petsArr)
+            return res.json({petsArr, access: !access})
         } catch (e) {
             next(ApiError.badRequest(e.message))
         }
