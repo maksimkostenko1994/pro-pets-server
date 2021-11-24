@@ -52,7 +52,7 @@ class PetController {
     async getAll(req, res, next) {
         try {
             const {status} = req.params
-            const pets = await Pet.findAll({where: {status}})
+            const pets = await Pet.findAll({where: {status}, order: [['createdAt', 'DESC']]})
             const users = await User.findAll()
             const petsArr = pets.map(pet => {
                 const user = users.find(item => item.id === pet.userId)
