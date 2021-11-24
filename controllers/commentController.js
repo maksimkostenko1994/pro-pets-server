@@ -8,7 +8,7 @@ class CommentController {
     }
 
     async getAll(req, res) {
-        const comments = Comment.findAll()
+        const comments = Comment.findAll({order: [['createdAt', 'DESC']]})
         return res.json(comments)
     }
 }
