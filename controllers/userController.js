@@ -46,7 +46,6 @@ class UserController {
             const {id, role} = req.user
             const token = generateJwt(id, role)
             const user = await User.findOne({where: {id}})
-
             return res.json({token, user})
         } catch (e) {
             throw new Error(e.message)
@@ -126,37 +125,38 @@ class UserController {
 
 module.exports = new UserController()
 
-fs.readdir('./static', async (err, data) => {
-    if (err) console.log(err)
-    const userPhotos = await User.findAll({attributes: ['pet_photo', 'avatar']})
-    const postPhotos = await Post.findAll({attributes: ['photo']})
-    const servicePhotos = await Service.findAll({attributes: ['photo']})
-    const petPhotos = await Pet.findAll({attributes: ['image']})
-    const userPhotoArr = userPhotos.map(item => {
-        return [item.pet_photo, item.avatar]
-    })
-
-    const postPhotoArr = postPhotos.map(item => {
-        return [item.photo]
-    })
-    const servicePhotoArr = servicePhotos.map(item => {
-        return [item.photo]
-    })
-    const petPhotoArr = petPhotos.map(item => {
-        return [item.image]
-    })
-
-    const allPhotos = [...userPhotoArr, ...postPhotoArr, ...servicePhotoArr, ...petPhotoArr]
-    const photoArray = allPhotos.flat(Infinity)
-
-    for (let i = 0; i < data.length; i++) {
-        const candidate = data[i]
-        for (let j = 0; j < photoArray.length; j++) {
-            const file = photoArray[j]
-            if (candidate !== file && j === photoArray.length - 1) {
-
-            }
-        }
-        console.log("=====================================")
-    }
-})
+// fs.readdir('./static', async (err, data) => {
+//     if (err) console.log(err)
+//     const userPhotos = await User.findAll({attributes: ['pet_photo', 'avatar']})
+//     const postPhotos = await Post.findAll({attributes: ['photo']})
+//     const servicePhotos = await Service.findAll({attributes: ['photo']})
+//     const petPhotos = await Pet.findAll({attributes: ['image']})
+//     const userPhotoArr = userPhotos.map(item => {
+//         return [item.pet_photo, item.avatar]
+//     })
+//
+//     const postPhotoArr = postPhotos.map(item => {
+//         return [item.photo]
+//     })
+//     const servicePhotoArr = servicePhotos.map(item => {
+//         return [item.photo]
+//     })
+//     const petPhotoArr = petPhotos.map(item => {
+//         return [item.image]
+//     })
+//
+//     const allPhotos = [...userPhotoArr, ...postPhotoArr, ...servicePhotoArr, ...petPhotoArr]
+//     const photoArray = allPhotos.flat(Infinity)
+//     const res = []
+//
+//     for (let i = 0; i < data.length; i++) {
+//         const even = elem => elem === data[i]
+//         if(!photoArray.some(even)) {
+//             res.push(data[i])
+//         }
+//     }
+//
+//     res.forEach(item => {
+//         fs.unlink(`./static/${item}`, () => {})
+//     })
+// })
