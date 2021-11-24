@@ -3,7 +3,7 @@ const ApiError = require("../errors/ApiError");
 const uuid = require("uuid");
 const path = require("path");
 const User = require('../models/User')
-const jwt = require('jsonwebtoken')
+const jwtDecode = require('jwt-decode')
 
 class PetController {
     async create(req, res, next) {
@@ -52,10 +52,13 @@ class PetController {
 
     async getAll(req, res, next) {
         try {
-            const token = req.headers.authorization.split(' ')[1]
-            const decoded = jwt.verify(token, process.env.SECRET_KEY)
-            const access = await Pet.findOne({where: {userId: decoded.id}})
             const {status} = req.params
+            let user = req.headers.authorization.split(' ')[1]
+            let access
+            if (user !== "null") {
+                user = jwtDecode(user)
+                access = await Pet.findOne({where: {userId: user.id, status: "lost"}})
+            }
             const pets = await Pet.findAll({where: {status}, order: [['createdAt', 'DESC']]})
             const users = await User.findAll()
             const petsArr = pets.map(pet => {
@@ -98,7 +101,7 @@ class PetController {
             const {id} = req.params
             if (!id) return res.json({message: "ID is not specified"})
             await Pet.destroy({where: {id}})
-            return res.json({ message: "Delete successfully" })
+            return res.json({message: "Delete successfully"})
         } catch (e) {
             next(ApiError.badRequest(e.message))
         }
