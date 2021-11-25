@@ -6,7 +6,6 @@ const ApiError = require("../errors/ApiError");
 const uuid = require("uuid");
 
 const path = require('path')
-const {where} = require("sequelize");
 
 class PostController {
     async create(req, res, next) {
@@ -47,16 +46,20 @@ class PostController {
     async getOne(req, res, next) {
         try {
             const {id} = req.params
+            let {page, limit} = req.query
+            console.log(page, limit)
+            page = page || 1
+            limit = limit || 10
+            let offset = page * limit - limit
             if (isNaN(id)) return next(ApiError.badRequest('Invalid id'))
             const post = await Post.findOne({where: {id}})
-            const comments = await Comment.findAll({where: {postId: id}})
+            const comments = await Comment.findAndCountAll({offset, limit, where: {postId: id}})
             const likes = await Like.findAndCountAll({where: {postId: id}})
             const users = await User.findAll()
-            if (!post) {
-                return next(ApiError.badRequest('Not found'))
-            }
+            if (!post) return next(ApiError.badRequest('Not found'))
+
             const user = await User.findOne({where: {id: post.userId}})
-            const commentsArr = comments.map(comment => {
+            const commentsArr = comments.rows.map(comment => {
                 const userObj = users.find(item => item.id === comment.userId)
                 return {...comment.dataValues, user: userObj}
             })
@@ -66,7 +69,8 @@ class PostController {
                 avatar: user.avatar,
                 comments: commentsArr,
                 likes: likes.rows,
-                count: likes.count
+                count: likes.count,
+                commentsCount: comments.count
             })
         } catch (e) {
             return new Error(e.message)

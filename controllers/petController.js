@@ -4,6 +4,7 @@ const uuid = require("uuid");
 const path = require("path");
 const User = require('../models/User')
 const jwtDecode = require('jwt-decode')
+const fs = require("fs");
 
 class PetController {
     async create(req, res, next) {
@@ -100,6 +101,8 @@ class PetController {
         try {
             const {id} = req.params
             if (!id) return res.json({message: "ID is not specified"})
+            const {image} = await Pet.findOne({where: {id}, attributes: ['image']})
+            fs.unlink(`./static/${image}`, () => {})
             await Pet.destroy({where: {id}})
             return res.json({message: "Delete successfully"})
         } catch (e) {

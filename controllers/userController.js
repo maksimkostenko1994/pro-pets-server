@@ -6,6 +6,8 @@ const User = require('../models/User')
 const uuid = require("uuid");
 const path = require("path");
 
+const fs = require('fs')
+
 const generateJwt = (id, role) => {
     return jwt.sign({id, role}, process.env.SECRET_KEY, {expiresIn: '24h'})
 }
@@ -60,7 +62,8 @@ class UserController {
     async update(req, res, next) {
         try {
             const {id} = req.params
-            const {email, phone, user_pet, nick, full_name} = req.body
+            const {email, phone, user_pet, nick, full_name, pet_photo_old, avatar_old} = req.body
+            if(!pet_photo_old || !avatar_old) return res.json({message: "You missed to send pet_photo_old or avatar_old"})
             let pet_photo, avatar
             if (req.files) {
                 pet_photo = req.files.pet_photo || null
@@ -73,19 +76,61 @@ class UserController {
             if (pet_photo)
                 await pet_photo.mv(path.resolve(__dirname, '..', 'static', petName))
             if (!id) return next(ApiError("ID is not specified"))
-            if(pet_photo && avatar) {
-                const [, user] = await User.update({email, phone, user_pet, nick, full_name, avatar: avatarName, pet_photo: petName}, {where: {id}, returning: true})
+            if (pet_photo && avatar) {
+                fs.readdir("./static", (err, data) => {
+                    if(err) return console.log(err)
+                    const petPhotoOld = data.find(item => item === pet_photo_old)
+                    const avatarOld = data.find(item => item === avatar_old)
+                    fs.unlink(`./static/${petPhotoOld}`, () => {})
+                    fs.unlink(`./static/${avatarOld}`, () => {})
+                })
+                const [, user] = await User.update({
+                    email,
+                    phone,
+                    user_pet,
+                    nick,
+                    full_name,
+                    avatar: avatarName,
+                    pet_photo: petName
+                }, {where: {id}, returning: true})
                 return res.json(user[0])
             }
             if (pet_photo) {
-                const [, user] = await User.update({email, phone, user_pet, nick, full_name, pet_photo: petName}, {where: {id}, returning: true})
+                fs.readdir("./static", (err, data) => {
+                    if(err) return console.log(err)
+                    const petPhotoOld = data.find(item => item === pet_photo_old)
+                    fs.unlink(`./static/${petPhotoOld}`, () => {})
+                })
+                const [, user] = await User.update({
+                    email,
+                    phone,
+                    user_pet,
+                    nick,
+                    full_name,
+                    pet_photo: petName
+                }, {where: {id}, returning: true})
                 return res.json(user[0])
             }
             if (avatar) {
-                const [, user] = await User.update({email, phone, user_pet, nick, full_name, avatar: avatarName}, {where: {id}, returning: true})
+                fs.readdir("./static", (err, data) => {
+                    if(err) return console.log(err)
+                    const avatarOld = data.find(item => item === avatar_old)
+                    fs.unlink(`./static/${avatarOld}`, () => {})
+                })
+                const [, user] = await User.update({
+                    email,
+                    phone,
+                    user_pet,
+                    nick,
+                    full_name,
+                    avatar: avatarName
+                }, {where: {id}, returning: true})
                 return res.json(user[0])
             }
-            const [, user] = await User.update({email, phone, user_pet, nick, full_name}, {where: {id}, returning: true})
+            const [, user] = await User.update({email, phone, user_pet, nick, full_name}, {
+                where: {id},
+                returning: true
+            })
             return res.json(user[0])
         } catch (e) {
             throw Error(e.message)
@@ -94,3 +139,39 @@ class UserController {
 }
 
 module.exports = new UserController()
+
+// fs.readdir('./static', async (err, data) => {
+//     if (err) console.log(err)
+//     const userPhotos = await User.findAll({attributes: ['pet_photo', 'avatar']})
+//     const postPhotos = await Post.findAll({attributes: ['photo']})
+//     const servicePhotos = await Service.findAll({attributes: ['photo']})
+//     const petPhotos = await Pet.findAll({attributes: ['image']})
+//     const userPhotoArr = userPhotos.map(item => {
+//         return [item.pet_photo, item.avatar]
+//     })
+//
+//     const postPhotoArr = postPhotos.map(item => {
+//         return [item.photo]
+//     })
+//     const servicePhotoArr = servicePhotos.map(item => {
+//         return [item.photo]
+//     })
+//     const petPhotoArr = petPhotos.map(item => {
+//         return [item.image]
+//     })
+//
+//     const allPhotos = [...userPhotoArr, ...postPhotoArr, ...servicePhotoArr, ...petPhotoArr]
+//     const photoArray = allPhotos.flat(Infinity)
+//     const res = []
+//
+//     for (let i = 0; i < data.length; i++) {
+//         const even = elem => elem === data[i]
+//         if(!photoArray.some(even)) {
+//             res.push(data[i])
+//         }
+//     }
+//
+//     res.forEach(item => {
+//         fs.unlink(`./static/${item}`, () => {})
+//     })
+// })
