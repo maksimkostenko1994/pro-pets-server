@@ -5,9 +5,6 @@ const jwt = require('jsonwebtoken')
 const User = require('../models/User')
 const uuid = require("uuid");
 const path = require("path");
-const Post = require("../models/Post");
-const Service = require("../models/Service");
-const Pet = require("../models/Pet");
 
 const fs = require('fs')
 
@@ -65,7 +62,8 @@ class UserController {
     async update(req, res, next) {
         try {
             const {id} = req.params
-            const {email, phone, user_pet, nick, full_name} = req.body
+            const {email, phone, user_pet, nick, full_name, pet_photo_old, avatar_old} = req.body
+            if(!pet_photo_old || !avatar_old) return res.json({message: "You missed to send pet_photo_old or avatar_old"})
             let pet_photo, avatar
             if (req.files) {
                 pet_photo = req.files.pet_photo || null
@@ -79,6 +77,13 @@ class UserController {
                 await pet_photo.mv(path.resolve(__dirname, '..', 'static', petName))
             if (!id) return next(ApiError("ID is not specified"))
             if (pet_photo && avatar) {
+                fs.readdir("./static", (err, data) => {
+                    if(err) return console.log(err)
+                    const petPhotoOld = data.find(item => item === pet_photo_old)
+                    const avatarOld = data.find(item => item === avatar_old)
+                    fs.unlink(`./static/${petPhotoOld}`, () => {})
+                    fs.unlink(`./static/${avatarOld}`, () => {})
+                })
                 const [, user] = await User.update({
                     email,
                     phone,
@@ -91,6 +96,11 @@ class UserController {
                 return res.json(user[0])
             }
             if (pet_photo) {
+                fs.readdir("./static", (err, data) => {
+                    if(err) return console.log(err)
+                    const petPhotoOld = data.find(item => item === pet_photo_old)
+                    fs.unlink(`./static/${petPhotoOld}`, () => {})
+                })
                 const [, user] = await User.update({
                     email,
                     phone,
@@ -102,6 +112,11 @@ class UserController {
                 return res.json(user[0])
             }
             if (avatar) {
+                fs.readdir("./static", (err, data) => {
+                    if(err) return console.log(err)
+                    const avatarOld = data.find(item => item === avatar_old)
+                    fs.unlink(`./static/${avatarOld}`, () => {})
+                })
                 const [, user] = await User.update({
                     email,
                     phone,
