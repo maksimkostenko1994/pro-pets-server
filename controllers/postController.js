@@ -47,8 +47,9 @@ class PostController {
         try {
             const {id} = req.params
             let {page, limit} = req.query
+            console.log(page, limit)
             page = page || 1
-            limit = limit || 5
+            limit = limit || 10
             let offset = page * limit - limit
             if (isNaN(id)) return next(ApiError.badRequest('Invalid id'))
             const post = await Post.findOne({where: {id}})
