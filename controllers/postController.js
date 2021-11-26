@@ -47,13 +47,12 @@ class PostController {
         try {
             const {id} = req.params
             let {page, limit} = req.query
-            console.log(page, limit)
             page = page || 1
             limit = limit || 10
             let offset = page * limit - limit
             if (isNaN(id)) return next(ApiError.badRequest('Invalid id'))
             const post = await Post.findOne({where: {id}})
-            const comments = await Comment.findAndCountAll({offset, limit, where: {postId: id}})
+            const comments = await Comment.findAndCountAll({offset, limit, where: {postId: id}, order: [['createdAt', 'DESC']]})
             const likes = await Like.findAndCountAll({where: {postId: id}})
             const users = await User.findAll()
             if (!post) return next(ApiError.badRequest('Not found'))
