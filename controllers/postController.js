@@ -27,7 +27,7 @@ class PostController {
             const posts = await Post.findAndCountAll({offset, limit, order: [['createdAt', 'DESC']]})
             const users = await User.findAll()
             const likes = await Like.findAll()
-            const postsArr = posts && posts.rows.map(post => {
+            const postsArr = posts.rows.map(post => {
                 const userItem = users.find(user => user.id === post.userId)
                 const likesCount = likes.filter(like => like.postId === post.id)
                 return {
