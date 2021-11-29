@@ -13,7 +13,7 @@ class PostController {
         const {photo} = req.files
         let postPhoto = `${uuid.v4()}.jpg`
         await photo.mv(path.resolve(__dirname, '..', 'static', postPhoto))
-        if (!userId) return next(ApiError.forbidden('Missing user id'))
+        if (!userId) return next(ApiError.badRequest('Missing user id'))
         const post = await Post.create({userId, title, text, likes, photo: postPhoto})
         return res.json(post)
     }
@@ -27,7 +27,7 @@ class PostController {
             const posts = await Post.findAndCountAll({offset, limit, order: [['createdAt', 'DESC']]})
             const users = await User.findAll()
             const likes = await Like.findAll()
-            const postsArr = posts.rows.map(post => {
+            const postsArr = posts && posts.rows.map(post => {
                 const userItem = users.find(user => user.id === post.userId)
                 const likesCount = likes.filter(like => like.postId === post.id)
                 return {
@@ -52,7 +52,12 @@ class PostController {
             let offset = page * limit - limit
             if (isNaN(id)) return next(ApiError.badRequest('Invalid id'))
             const post = await Post.findOne({where: {id}})
-            const comments = await Comment.findAndCountAll({offset, limit, where: {postId: id}, order: [['createdAt', 'DESC']]})
+            const comments = await Comment.findAndCountAll({
+                offset,
+                limit,
+                where: {postId: id},
+                order: [['createdAt', 'DESC']]
+            })
             const likes = await Like.findAndCountAll({where: {postId: id}})
             const users = await User.findAll()
             if (!post) return next(ApiError.badRequest('Not found'))
