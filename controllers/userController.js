@@ -9,7 +9,7 @@ const path = require("path");
 const fs = require('fs')
 
 const generateJwt = (id, role) => {
-    return jwt.sign({id, role}, process.env.SECRET_KEY, {expiresIn: '24h'})
+    return jwt.sign({id, role}, process.env.SECRET_KEY, {expiresIn: '900s'})
 }
 
 class UserController {
