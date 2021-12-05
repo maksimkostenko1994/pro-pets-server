@@ -13,7 +13,7 @@ const router = require('./routes/routes')
 
 const errorHandler = require('./middleware/ErrorHandlerMiddleware')
 
-const PORT = process.env.PORT || 5000ç
+const PORT = process.env.PORT || 5000
 
 const app = express()
 app.use(cors())

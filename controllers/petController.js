@@ -54,6 +54,7 @@ class PetController {
     async getAll(req, res, next) {
         try {
             const {status} = req.params
+            console.log(req.headers);
             let user = req.headers.authorization.split(' ')[1]
             let access
             if (user !== "null") {
